@@ -1,256 +1,114 @@
-/*  graphics.h
-
-	在 VC 下模拟 Borland BGI 绘图库，实现简单的绘图
-
-	2009-9-9 by yw80@msn.com
-	http://hi.baidu.com/yangw80
-*/
+/******************************************************
+ * EasyX Library for C++ (Ver:20190529(beta))
+ * http://www.easyx.cn
+ *
+ * graphics.h
+ *	基于 EasyX.h，实现在 VC 下实现简单绘图。
+ *	同时，为了兼容 Turbo C/C++ 和 Borland C/C++ 等一系
+ *	列开发环境中的 BGI 绘图库函数，做了相应扩展。
+ ******************************************************/
 
 #pragma once
 
-#pragma comment(lib,"graphics.lib")
+#include <easyx.h>
 
-/* debug 模式时不加载 release 模式的库文件 */
-#ifdef _DEBUG
-#pragma comment(linker, "/NODEFAULTLIB:libc.lib")
+// 兼容 initgraph 绘图模式的宏定义（无实际意义）
+#define DETECT	0
+#define VGA		0
+#define	VGALO	0
+#define VGAMED	0
+#define VGAHI	0
+#define CGA		0
+#define	CGAC0	0
+#define	CGAC1	0
+#define CGAC2	0
+#define CGAC3	0
+#define CGAHI	0
+#define EGA		0
+#define EGALO	0
+#define	EGAHI	0
+
+// BGI 格式的初始化图形设备，默认 640 x 480
+HWND initgraph(int* gdriver, int* gmode, char* path);
+
+void bar(int left, int top, int right, int bottom);		// 画无边框填充矩形
+void bar3d(int left, int top, int right, int bottom, int depth, bool topflag);	// 画有边框三维填充矩形
+
+void drawpoly(int numpoints, const int *polypoints);	// 画多边形
+void fillpoly(int numpoints, const int *polypoints);	// 画填充的多边形
+
+int getmaxx();					// 获取最大的宽度值
+int getmaxy();					// 获取最大的高度值
+
+COLORREF getcolor();			// 获取当前绘图前景色
+void setcolor(COLORREF color);	// 设置当前绘图前景色
+
+void setwritemode(int mode);	// 设置前景的二元光栅操作模式
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+// 以下函数仅为兼容早期 EasyX 的接口，不建议使用。请使用相关新函数替换。
+//
+
+#if _MSC_VER > 1200
+	#define _EASYX_DEPRECATE(_NewFunc) __declspec(deprecated("This function is deprecated. Instead, use this new function: " #_NewFunc ". See https://docs.easyx.cn/#" #_NewFunc " for details."))
+	#define _EASYX_DEPRECATE_OVERLOAD(_Func) __declspec(deprecated("This overload is deprecated. See https://docs.easyx.cn/#" #_Func " for details."))
+#else
+	#define _EASYX_DEPRECATE(_NewFunc)
+	#define _EASYX_DEPRECATE_OVERLOAD(_Func)
 #endif
 
-#include "windows.h"
+// 设置当前字体样式(该函数已不再使用，请使用 settextstyle 代替)
+//		nHeight: 字符的平均高度；
+//		nWidth: 字符的平均宽度(0 表示自适应)；
+//		lpszFace: 字体名称；
+//		nEscapement: 字符串的书写角度(单位 0.1 度)；
+//		nOrientation: 每个字符的书写角度(单位 0.1 度)；
+//		nWeight: 字符的笔画粗细(0 表示默认粗细)；
+//		bItalic: 是否斜体；
+//		bUnderline: 是否下划线；
+//		bStrikeOut: 是否删除线；
+//		fbCharSet: 指定字符集；
+//		fbOutPrecision: 指定文字的输出精度；
+//		fbClipPrecision: 指定文字的剪辑精度；
+//		fbQuality: 指定文字的输出质量；
+//		fbPitchAndFamily: 指定以常规方式描述字体的字体系列。
+_EASYX_DEPRECATE(settextstyle) void setfont(int nHeight, int nWidth, LPCTSTR lpszFace);
+_EASYX_DEPRECATE(settextstyle) void setfont(int nHeight, int nWidth, LPCTSTR lpszFace, int nEscapement, int nOrientation, int nWeight, bool bItalic, bool bUnderline, bool bStrikeOut);
+_EASYX_DEPRECATE(settextstyle) void setfont(int nHeight, int nWidth, LPCTSTR lpszFace, int nEscapement, int nOrientation, int nWeight, bool bItalic, bool bUnderline, bool bStrikeOut, BYTE fbCharSet, BYTE fbOutPrecision, BYTE fbClipPrecision, BYTE fbQuality, BYTE fbPitchAndFamily);
+_EASYX_DEPRECATE(settextstyle) void setfont(const LOGFONT *font);	// 设置当前字体样式
+_EASYX_DEPRECATE(gettextstyle) void getfont(LOGFONT *font);			// 获取当前字体样式
 
-#define pointtype POINT
-#define MAXCOLORS 0xffffff
-#define PI 3.1415926535
+// 以下填充样式不再使用，新的填充样式请参见帮助文件
+#define	NULL_FILL			BS_NULL
+#define	EMPTY_FILL			BS_NULL
+#define	SOLID_FILL			BS_SOLID
+// 普通一组
+#define	BDIAGONAL_FILL		BS_HATCHED, HS_BDIAGONAL					// /// 填充 (对应 BGI 的 LTSLASH_FILL)
+#define CROSS_FILL			BS_HATCHED, HS_CROSS						// +++ 填充
+#define DIAGCROSS_FILL		BS_HATCHED, HS_DIAGCROSS					// xxx 填充 (heavy cross hatch fill) (对应 BGI 的 XHTACH_FILL)
+#define DOT_FILL			(BYTE*)"\x80\x00\x08\x00\x80\x00\x08\x00"	// xxx 填充 (对应 BGI 的 WIDE_DOT_FILL)	
+#define FDIAGONAL_FILL		BS_HATCHED, HS_FDIAGONAL					// \\\ 填充
+#define HORIZONTAL_FILL		BS_HATCHED, HS_HORIZONTAL					// === 填充
+#define VERTICAL_FILL		BS_HATCHED, HS_VERTICAL						// ||| 填充
+// 密集一组
+#define BDIAGONAL2_FILL		(BYTE*)"\x44\x88\x11\x22\x44\x88\x11\x22"
+#define CROSS2_FILL			(BYTE*)"\xff\x11\x11\x11\xff\x11\x11\x11"	// (对应 BGI 的 fill HATCH_FILL)
+#define DIAGCROSS2_FILL		(BYTE*)"\x55\x88\x55\x22\x55\x88\x55\x22"
+#define DOT2_FILL			(BYTE*)"\x88\x00\x22\x00\x88\x00\x22\x00"	// (对应 BGI 的 CLOSE_DOT_FILL)
+#define FDIAGONAL2_FILL		(BYTE*)"\x22\x11\x88\x44\x22\x11\x88\x44"
+#define HORIZONTAL2_FILL	(BYTE*)"\x00\x00\xff\x00\x00\x00\xff\x00"
+#define VERTICAL2_FILL		(BYTE*)"\x11\x11\x11\x11\x11\x11\x11\x11"
+// 粗线一组
+#define BDIAGONAL3_FILL		(BYTE*)"\xe0\xc1\x83\x07\x0e\x1c\x38\x70"	// (对应 BGI 的 SLASH_FILL)
+#define CROSS3_FILL			(BYTE*)"\x30\x30\x30\x30\x30\x30\xff\xff"
+#define DIAGCROSS3_FILL		(BYTE*)"\xc7\x83\xc7\xee\x7c\x38\x7c\xee"
+#define DOT3_FILL			(BYTE*)"\xc0\xc0\x0c\x0c\xc0\xc0\x0c\x0c"
+#define FDIAGONAL3_FILL		(BYTE*)"\x07\x83\xc1\xe0\x70\x38\x1c\x0e"
+#define HORIZONTAL3_FILL	(BYTE*)"\xff\xff\x00\x00\xff\xff\x00\x00"	// (对应 BGI 的 LINE_FILL)	
+#define VERTICAL3_FILL		(BYTE*)"\x33\x33\x33\x33\x33\x33\x33\x33"
+// 其它
+#define INTERLEAVE_FILL		(BYTE*)"\xcc\x33\xcc\x33\xcc\x33\xcc\x33"	// (对应 BGI 的 INTERLEAVE_FILL)
 
-/* 为了兼容 Borland C++ 3.1 而做的无意义定义 */
-#define DETECT 0
-#define VGA	0
-#define VGAHI 0
-
-/* 初始化参数 */
-enum init_flags
-{
-	SHOWCONSOLE = 1		// 进入图形模式时，保留控制台的显示
-};
-
-/* 颜色常量设置 */
-enum COLORS
-{
-	BLACK	= 0,
-	BLUE	= 0xA80000,
-	GREEN	= 0x00A800,
-	CYAN	= 0xA8A800,
-	RED		= 0x0000A8,
-	MAGENTA	= 0xA800A8,
-	BROWN	= 0x0054A8,
-	LIGHTGRAY	= 0xA8A8A8,
-	DARKGRAY	= 0x545454,
-	LIGHTBLUE	= 0xFC5454,
-	LIGHTGREEN	= 0x54FC54,
-	LIGHTCYAN	= 0xFCFC54,
-	LIGHTRED	= 0x5454FC,
-	LIGHTMAGENTA= 0xFC54FC,
-	YELLOW	= 0x54FCFC,
-	WHITE	= 0xFCFCFC
-};
-
-/* 视图设置信息 */
-struct viewporttype
-{
-	int left, top, right, bottom;
-	int clip;
-};
-
-/* 线样式 */
-enum line_styles
-{
-    SOLID_LINE   = 0,
-    DOTTED_LINE  = 1,
-    CENTER_LINE  = 2,
-    DASHED_LINE  = 3,
-    USERBIT_LINE = 4,   /* User defined line style */
-};
-
-/* 线宽 */
-enum line_widths
-{
-    NORM_WIDTH  = 1,
-    THICK_WIDTH = 3,
-};
-
-/* 线形 */
-struct linesettingstype
-{
-    int linestyle;
-    unsigned upattern;
-    int thickness;
-};
-
-/* 填充模式 */
-enum fill_patterns
-{
-    EMPTY_FILL,		/* fills area in background color */
-    SOLID_FILL,		/* fills area in solid fill color */
-    LINE_FILL,		/* --- fill */
-    LTSLASH_FILL,	/* /// fill */
-    SLASH_FILL,		/* /// fill with thick lines */
-    BKSLASH_FILL,	/* \\\ fill with thick lines */
-    LTBKSLASH_FILL,	/* \\\ fill */
-    HATCH_FILL,		/* light hatch fill */
-    XHATCH_FILL,	/* heavy cross hatch fill */
-    INTERLEAVE_FILL,/* interleaving line fill */
-    WIDE_DOT_FILL,	/* Widely spaced dot fill */
-    CLOSE_DOT_FILL,	/* Closely spaced dot fill */
-    USER_FILL		/* user defined fill */
-};
-
-/* 填充类型 */
-struct fillsettingstype
-{
-    int pattern;
-    int color;
-};
-
-/* 圆弧坐标信息，应用于 getarccoords() */
-struct arccoordstype
-{
-    int x, y;
-    int xstart, ystart, xend, yend;
-};
-
-/* 位操作模式 */
-enum putimage_ops
-{
-	COPY_PUT = SRCCOPY,		/* MOV */
-	XOR_PUT = SRCINVERT,	/* XOR */
-	OR_PUT = SRCPAINT,		/* OR  */
-	AND_PUT = SRCAND,		/* AND */
-	NOT_PUT = NOTSRCCOPY	/* NOT */
-};
-
-/* 定义图像 */
-class IMAGE
-{
-private:
-	HBITMAP m_hBmp;
-	HDC m_hDC;
-	int m_width, m_height;
-public:
-	IMAGE();
-	~IMAGE();
-	void getimage(int left, int top, int right, int bottom);
-	void getimage(const char *imagefile);
-	void getimage(const IMAGE *imgsrc, int left, int top, int right, int bottom);
-	void putimage(int left, int top, int op);
-
-	friend void IMAGE::getimage(const IMAGE *imgsrc, int left, int top, int right, int bottom);
-};
-
-
-
-/* 绘图模式相关函数 */
-
-void initgraph(int* gdriver, int* gmode, char* path);	/* 兼容 Borland C++ 3.1 的重载，默认 640x480@24bit */
-void initgraph(int Width, int Height);					/* 初始化图形环境 */
-void initgraph(int Width, int Height, int Flag);		/* 初始化图形环境 */
-void closegraph();										/* 关闭图形环境 */
-
-
-/* 绘图环境设置 */
-
-void cleardevice();					/* 清屏 */
-
-COLORREF getcolor();				/* 获取当前绘图前景色 */
-void setcolor(COLORREF color);		/* 设置当前绘图前景色 */
-COLORREF getbkcolor();				/* 获取当前绘图背景色 */
-void setbkcolor(COLORREF color);	/* 设置当前绘图背景色 */
-
-void getviewsettings(struct viewporttype *viewport);					/* 获取视图信息 */
-void setviewport(int left, int top, int right, int bottom, int clip);	/* 设置视图 */
-void clearviewport();													/* 清空视图 */
-
-void getlinesettings(struct linesettingstype *lineinfo);				/* 获取当前线形 */
-void setlinestyle(int linestyle, unsigned int upattern, int thickness);	/* 设置当前线形 */
-
-void getfillsettings(struct fillsettingstype *fillinfo);	/* 获取填充类型 */
-void setfillstyle(int pattern, int color);					/* 设置填充类型 */
-void getfillpattern(char *pattern);							/* 获取自定义填充类型 */
-void setfillpattern(const char *upattern, int color);		/* 设置自定义填充类型 */
-
-void getaspectratio(int *xasp, int *yasp);	/* 获取当前缩放因子 */
-void setaspectratio(int xasp, int yasp);	/* 设置当前缩放因子 */
-
-void setwritemode(int mode);				/* 设置绘图位操作模式 */
-
-void graphdefaults();						/* 重置所有绘图设置为默认值 */
-
-
-/* 绘图函数 */
-
-COLORREF getpixel(int x, int y);				/* 获取点的颜色 */
-void putpixel(int x, int y, COLORREF color);	/* 画点 */
-
-void moveto(int x, int y);						/* 移动当前点(绝对坐标) */
-void moverel(int dx, int dy);					/* 移动当前点(相对坐标) */
-
-void line(int x1, int y1, int x2, int y2);		/* 画线 */
-void linerel(int dx, int dy);					/* 画线(至相对坐标) */
-void lineto(int x, int y);						/* 画线(至绝对坐标) */
-
-void rectangle(int left, int top, int right, int bottom);	/* 画矩形 */
-
-void getarccoords(struct arccoordstype *arccoords);								/* 获取圆弧坐标信息 */
-void arc(int x, int y, int stangle, int endangle, int radius);					/* 画圆弧 */
-void circle(int x, int y, int radius);											/* 画圆 */
-void pieslice(int x, int y, int stangle, int endangle, int radius);				/* 画填充圆扇形 */
-void ellipse(int x, int y, int stangle, int endangle, int xradius, int yradius);/* 画椭圆弧线 */
-void fillellipse(int x, int y, int xradius, int yradius);						/* 画填充椭圆 */
-void sector(int x, int y, int stangle, int endangle, int xradius, int yradius);	/* 画填充椭圆扇形 */
-
-void bar(int left, int top, int right, int bottom);								/* 画无边框填充矩形 */
-void bar3d(int left, int top, int right, int bottom, int depth, int topflag);	/* 画有边框三维填充矩形 */
-
-void drawpoly(int numpoints, const int *polypoints);	/* 画多边形 */
-void fillpoly(int numpoints, const int *polypoints);	/* 画填充的多边形 */
-void floodfill(int x, int y, int border);				/* 填充区域 */
-
-
-/* 文字相关函数 */
-
-void outtext(LPCTSTR textstring);					/* 在当前位置输出文字 */
-void outtextxy(int x, int y, LPCTSTR textstring);	/* 在指定位置输出文字 */
-int textwidth(LPCTSTR textstring);					/* 获取字符串占用的像素宽 */
-int textheight(LPCTSTR textstring);					/* 获取字符串占用的像素高 */
-
-/* 设置当前字体样式
-		nHeight: 字符的平均高度
-		nWidth: 字符的平均宽度
-		nEscapement: 字符串的书写角度，单位 0.1 度。
-		nOrientation: 每个字符的书写角度，单位 0.1 度。
-		fnWeight: 字符的笔画粗细。常用的是 400，默认 0 即可。
-		fdwItalic: 是否斜体，TRUE / FALSE
-		fdwUnderline: 是否下划线，TRUE / FALSE
-		fdwStrikeOut: 是否删除线，TRUE / FALSE
-		lpszFace: 字体名称 */
-void SetFont(int nHeight,int nWidth,int nEscapement,int nOrientation,int fnWeight,BYTE fdwItalic,BYTE fdwUnderline,BYTE fdwStrikeOut,LPCTSTR lpszFace);
-void SetFont(const LOGFONT *font);	/* 设置当前字体样式 */
-void GetFont(LOGFONT *font);		/* 获取当前字体样式 */
-
-
-/* 图像处理函数 */
-
-void getimage(int left, int top, int right, int bottom, IMAGE *imgdst);			/* 从屏幕获取图像 */
-void getimage(const char *imagefile, IMAGE *imgdst);							/* 从 BMP 文件获取图像 */
-void getimage(const IMAGE *imgsrc, int left, int top, int right, int bottom, IMAGE *imgdst);	/* 从 IMAGE 对象获取图像 */
-void putimage(int left, int top, IMAGE *img, int op);							/* 绘制图像 */
-
-
-
-/* 其它函数 */
-
-int	getmaxcolor();	/* 获取最大颜色值 */
-int	getmaxx();		/* 获取最大 x 坐标 */
-int	getmaxy();		/* 获取最大 y 坐标 */
-int	getx();			/* 获取当前 x 坐标 */
-int	gety();			/* 获取当前 y 坐标 */
-int GetGraphicsVer();		/* 获取当前版本 */
-char* GetGraphicsAuthor();	/* 作者 */
